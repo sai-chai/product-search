@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {
-   useRef, useReducer, KeyboardEvent, MouseEvent,
+   useRef, useReducer, KeyboardEvent, MouseEvent, AriaAttributes,
 } from 'react';
 import useSWR from 'swr';
 import styled from 'styled-components';
@@ -23,7 +23,7 @@ function ProductSearch() {
    /* Hooks */
 
    const [ state, dispatch ] = useReducer(reducer, initialState);
-   const filterField = useRef<HTMLInputElement>(null);
+   const filterInputRef = useRef<HTMLInputElement>(null);
 
    const reqParams: ProductsRequestBody = {
       query: {},
@@ -34,6 +34,7 @@ function ProductSearch() {
    
    /* Data fetching */
 
+   // SWR automatically caches and dedupes. 
    useSWR<Product[]>(
       state.isFetching ? `/api/products?q=${JSON.stringify(reqParams)}` : null,
       fetcher,
@@ -42,6 +43,7 @@ function ProductSearch() {
             dispatch(actions.updateProducts(newProducts)),
          onError: () => dispatch(actions.cancelUpdate()),
          onLoadingSlow: () => dispatch(actions.cancelUpdate()),
+         revalidateOnFocus: false,
       },
    );
    
@@ -52,7 +54,7 @@ function ProductSearch() {
          'key' in event && event.key === 'Enter' ||
          event.target instanceof HTMLButtonElement && event.type === 'click'
       ) {
-         dispatch(actions.changeFilter(filterField.current.value));
+         dispatch(actions.changeFilter(filterInputRef.current.value));
       }
    };
 
@@ -80,28 +82,26 @@ function ProductSearch() {
 
    /* Conditional rendering functions */
 
-   const getSortIndicator = (field: string) => {
-      if (field !== 'id') {
-         if (state.sortBy === field) {
-            if (state.isAscending) {
-               return <>&#x25B2;</>;
-            }
-            return <>&#x25BC;</>;
+   // Returns tuple for DRYness
+   const getSortIndicator = (field: string): [ JSX.Element, AriaAttributes['aria-sort'] ] => {
+      if (state.sortBy === field) {
+         if (state.isAscending) {
+            return [ <>&#x25B2;</>, 'ascending' ]; // Up triangle
          }
-         return <>&#x25B6;&#xFE0E;</>
+         return [ <>&#x25BC;</>, 'descending' ];   // Down triangle
       }
-      return '';
+      return [ <>&#x25B6;&#xFE0E;</>, 'none' ];    // Right triangle
    };
 
+   /** 
+    * Dedupes sort field changes and prevents sort order 
+    * from changing at the same time as sort field.
+    */
    const headerHandlerFactory = (field: string) => {
-      if (field !== 'id') {
-         if (field !== state.sortBy) {
-            return handleChangeSortField;
-         } else {
-            return handleSwitchSortOrder;
-         }
+      if (field !== state.sortBy) {
+         return handleChangeSortField;
       }
-      return null;
+      return handleSwitchSortOrder;
    };
 
    return (
@@ -118,9 +118,11 @@ function ProductSearch() {
             <FilterWrapper>
                <input
                   type="text"
-                  id="filter"
+                  id="filterInput"
                   name="filter"
-                  ref={filterField}
+                  placeholder="Filter"
+                  aria-controls="mainTable"
+                  ref={filterInputRef}
                   disabled={state.isFetching}
                   onKeyPress={handleFilterSubmit}
                />
@@ -130,30 +132,42 @@ function ProductSearch() {
                   disabled={state.isFetching}
                   onClick={handleFilterSubmit}
                >
-                  Filter
+                  Enter
                </button>
             </FilterWrapper>
-            <TableWrapper data-active={state.isFetching} aria-busy={state.isFetching}>
+            <TableWrapper aria-busy={state.isFetching} id="mainTable">
                <thead>
                   <tr>
-                     {fields.map((field) => (
-                        <th
-                           tabIndex={field[0] !== 'id' ? 0 : null}
-                           role="button"
-                           key={field[0]}
-                           id={field[0]}
-                           onClick={headerHandlerFactory(field[0])}
-                           onKeyPress={headerHandlerFactory(field[0])}
-                        >
-                           {field[1]}
-                           {` `}
-                           {getSortIndicator(field[0])}
-                        </th>
+                     {fields.map(([ field, label ]) => (
+                        field !== 'id' ? (
+                           <th
+                              tabIndex={0}
+                              role={'button'}
+                              aria-controls={'mainTable' || undefined}
+                              aria-current={field === state.sortBy}
+                              aria-sort={getSortIndicator( field )[1]}
+                              key={field}
+                              id={field}
+                              onClick={headerHandlerFactory(field)}
+                              onKeyPress={headerHandlerFactory(field)}
+                           >
+                              {label}
+                              {` `}
+                              {getSortIndicator( field )[0]}
+                           </th>
+                        ) : (
+                           <th
+                              key={field}
+                              id={field}
+                           >
+                              {label}
+                           </th>
+                        )
                      ))}
                   </tr>
                </thead>
                {state.products.length ? (
-                  <tbody>
+                  <tbody data-busy={state.isFetching}>
                      {state.products.map((product, ind) => (
                         <tr key={product.id} data-row-even={!!(ind % 2)}>
                            <td headers="id">{product.id}</td>
@@ -203,8 +217,6 @@ const FilterWrapper = styled.div.attrs({role: "form"})`
    * {
       height: 2.6em;
       font-size: 1em;
-      border-style: solid;
-      border-radius: 10px;
    }
    input[type="text"] {
       width: 40vw;
@@ -215,6 +227,10 @@ const FilterWrapper = styled.div.attrs({role: "form"})`
       margin: 0 1em;
       padding: 0.6em 1em;
       cursor: pointer;
+   }
+   input, button {
+      border-style: solid;
+      border-radius: 10px;
    }
 `;
 
@@ -240,12 +256,15 @@ const TableWrapper = styled.table`
       }
    }
    tbody {
-      opacity: ${props => props['data-active'] ? 0.25 : 1}
+      opacity: 1;
+      &[data-busy="true"] {
+         opacity: 0.25;
+      }
    }
    tfoot tr {
       grid-template-columns: auto;
    }
-   th {
+   th:not(#id) {
       cursor: pointer;
    }
    td{

@@ -1,6 +1,11 @@
 import { Reducer } from 'react';
 import {
-   PayloadAction, CHANGE_FILTER, CHANGE_SORT_FIELD, TOGGLE_SORT_ORDER, UPDATE_PRODUCTS, CANCEL_UPDATE,
+   PayloadAction,
+   CHANGE_FILTER,
+   CHANGE_SORT_FIELD,
+   TOGGLE_SORT_ORDER,
+   UPDATE_PRODUCTS,
+   CANCEL_UPDATE,
 } from 'src/actions/ProductSearch';
 import Product from 'src/models/Product';
 
