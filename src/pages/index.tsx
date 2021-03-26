@@ -6,8 +6,9 @@ import useSWR from 'swr';
 import styled from 'styled-components';
 import reducer, { initialState } from 'src/reducers/ProductSearch';
 import actions from 'src/actions/ProductSearch';
-import { ProductsRequestBody, Product } from './api/products';
+import Product, { ProductsRequestBody } from 'src/models/Product';
 
+// Required for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const fields = [
@@ -18,6 +19,9 @@ const fields = [
 ];
 
 function ProductSearch() {
+   
+   /* Hooks */
+
    const [ state, dispatch ] = useReducer(reducer, initialState);
    const filterField = useRef<HTMLInputElement>(null);
 
@@ -28,6 +32,8 @@ function ProductSearch() {
       filter: state.filter,
    };
    
+   /* Data fetching */
+
    useSWR<Product[]>(
       state.isFetching ? `/api/products?q=${JSON.stringify(reqParams)}` : null,
       fetcher,
@@ -38,8 +44,10 @@ function ProductSearch() {
          onLoadingSlow: () => dispatch(actions.cancelUpdate()),
       },
    );
+   
+   /* UI event handlers */
 
-   const handleFilterEntry = (event: KeyboardEvent<HTMLElement> | MouseEvent<HTMLElement>) => {
+   const handleFilterSubmit = (event: KeyboardEvent<HTMLElement> | MouseEvent<HTMLElement>) => {
       if (
          'key' in event && event.key === 'Enter' ||
          event.target instanceof HTMLButtonElement && event.type === 'click'
@@ -70,7 +78,9 @@ function ProductSearch() {
       }
    };
 
-   const headerArrow = (field: string) => {
+   /* Conditional rendering functions */
+
+   const getSortIndicator = (field: string) => {
       if (field !== 'id') {
          if (state.sortBy === field) {
             if (state.isAscending) {
@@ -112,13 +122,13 @@ function ProductSearch() {
                   name="filter"
                   ref={filterField}
                   disabled={state.isFetching}
-                  onKeyPress={handleFilterEntry}
+                  onKeyPress={handleFilterSubmit}
                />
                <button
                   type="button"
                   id="filterSubmit"
                   disabled={state.isFetching}
-                  onClick={handleFilterEntry}
+                  onClick={handleFilterSubmit}
                >
                   Filter
                </button>
@@ -137,7 +147,7 @@ function ProductSearch() {
                         >
                            {field[1]}
                            {` `}
-                           {headerArrow(field[0])}
+                           {getSortIndicator(field[0])}
                         </th>
                      ))}
                   </tr>

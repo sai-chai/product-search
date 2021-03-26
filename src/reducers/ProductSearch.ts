@@ -2,7 +2,7 @@ import { Reducer } from 'react';
 import {
    PayloadAction, CHANGE_FILTER, CHANGE_SORT_FIELD, TOGGLE_SORT_ORDER, UPDATE_PRODUCTS, CANCEL_UPDATE,
 } from 'src/actions/ProductSearch';
-import { Product } from 'src/pages/api/products';
+import Product from 'src/models/Product';
 
 export interface ProductSearchState {
    products: Product[];
@@ -20,7 +20,7 @@ export const initialState: ProductSearchState = {
    isFetching: true, // triggers initial fetch
 };
 
-const ProductSearchReducer: Reducer<ProductSearchState, PayloadAction> = (state, action) => {
+const reducer: Reducer<ProductSearchState, PayloadAction> = (state, action) => {
    switch (action.type) {
    case CHANGE_FILTER:
       return {
@@ -56,4 +56,4 @@ const ProductSearchReducer: Reducer<ProductSearchState, PayloadAction> = (state,
    }
 };
 
-export default ProductSearchReducer;
+export default reducer;

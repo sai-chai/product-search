@@ -1,9 +1,12 @@
-import { Product } from 'src/pages/api/products';
+import Product from 'src/models/Product';
 
+// Stand-in for Redux interface
 export interface PayloadAction {
    type: string;
    payload: any;
 }
+
+/* Constants */
 
 export const CHANGE_FILTER = 'change_filter';
 
@@ -14,6 +17,8 @@ export const TOGGLE_SORT_ORDER = 'toggle_sort_order';
 export const UPDATE_PRODUCTS = 'update_products';
 
 export const CANCEL_UPDATE = 'cancel_update';
+
+/* Actions */
 
 const changeFilter = (newFilter: string): PayloadAction => ({
    type: CHANGE_FILTER,
