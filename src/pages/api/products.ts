@@ -1,5 +1,5 @@
 import * as qs from 'querystring';
-import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
+import { NextApiHandler } from 'next';
 
 export interface Product {
    _id: string;
@@ -34,6 +34,7 @@ export interface ProductsRequestBody {
 const restDBUrl = 'https://sevenfiftyproducts-b8e9.restdb.io/rest';
 
 const ProductsHandler: NextApiHandler<Product[]> = async (req, res) => {
+   /* eslint-disable prefer-const */
    if (req.method === 'GET') {
       try {
          let {
@@ -56,7 +57,7 @@ const ProductsHandler: NextApiHandler<Product[]> = async (req, res) => {
             sort: sortBy,
          });
          query = JSON.stringify(query);
-         hints = !!hints ? '&h=' + JSON.stringify(hints) : '';
+         hints = hints ? `&h=${JSON.stringify(hints)}` : '';
 
          const fetchRes = await fetch(
             `${restDBUrl}/products?q=${query}${hints}&${urlParams}`,
@@ -64,16 +65,15 @@ const ProductsHandler: NextApiHandler<Product[]> = async (req, res) => {
                headers: { 'x-apikey': process.env.API_KEY },
             },
          );
-
          const products = await fetchRes.json();
 
          res.status(200).json(products);
       } catch (error) {
-         res.status(error.response?.statusCode || 404);
+         res.status(400).send([]);
       }
    } else {
-      res.status(405);
+      res.status(405).send([]);
    }
-}
+};
 
 export default ProductsHandler;

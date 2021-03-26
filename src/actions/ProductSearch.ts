@@ -1,17 +1,19 @@
-import { Product } from "src/pages/api/products";
+import { Product } from 'src/pages/api/products';
 
 export interface PayloadAction {
    type: string;
    payload: any;
 }
 
-export const CHANGE_FILTER = "change_filter";
+export const CHANGE_FILTER = 'change_filter';
 
-export const CHANGE_SORT_FIELD = "change_sort_field";
+export const CHANGE_SORT_FIELD = 'change_sort_field';
 
-export const TOGGLE_SORT_ORDER = "toggle_sort_order";
+export const TOGGLE_SORT_ORDER = 'toggle_sort_order';
 
-export const UPDATE_PRODUCTS = "update_products";
+export const UPDATE_PRODUCTS = 'update_products';
+
+export const CANCEL_UPDATE = 'cancel_update';
 
 const changeFilter = (newFilter: string): PayloadAction => ({
    type: CHANGE_FILTER,
@@ -31,11 +33,17 @@ const toggleSortOrder = (): PayloadAction => ({
 const updateProducts = (products: Product[]): PayloadAction => ({
    type: UPDATE_PRODUCTS,
    payload: products,
-})
+});
+
+const cancelUpdate = (): PayloadAction => ({
+   type: CANCEL_UPDATE,
+   payload: null,
+});
 
 export default {
    changeFilter,
    changeSortField,
    toggleSortOrder,
    updateProducts,
+   cancelUpdate,
 };
