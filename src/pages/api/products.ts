@@ -25,7 +25,7 @@ export interface ProductsRequestBody {
    hints?: Object;
    filter?: string;
    sortBy?: string;
-   ascending?: boolean;
+   isAscending?: boolean;
    page?: number;
    pageSize?: number;
    groupBy?: string;
@@ -44,7 +44,7 @@ const ProductsHandler: NextApiHandler<Product[]> = async (req, res) => {
             filter,
             page = 1,
             pageSize = 25,
-            ascending,
+            isAscending,
             groupBy,
          } = JSON.parse(req.query.q.toString());
 
@@ -52,7 +52,7 @@ const ProductsHandler: NextApiHandler<Product[]> = async (req, res) => {
             filter,
             skip: (page - 1) * pageSize,
             max: pageSize,
-            dir: ascending ? 1 : -1,
+            dir: isAscending ? 1 : -1,
             groupBy,
             sort: sortBy,
          });

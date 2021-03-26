@@ -9,7 +9,7 @@ export interface ProductSearchState {
    filter: string;
    sortBy: 'name' | 'id' | 'abv' | 'vintage_year';
    isAscending: boolean;
-   shouldFetch: boolean;
+   isFetching: boolean;
 }
 
 export const initialState: ProductSearchState = {
@@ -17,7 +17,7 @@ export const initialState: ProductSearchState = {
    filter: '',
    sortBy: 'vintage_year',
    isAscending: true,
-   shouldFetch: true, // triggers initial fetch
+   isFetching: true, // triggers initial fetch
 };
 
 const ProductSearchReducer: Reducer<ProductSearchState, PayloadAction> = (state, action) => {
@@ -26,30 +26,30 @@ const ProductSearchReducer: Reducer<ProductSearchState, PayloadAction> = (state,
       return {
          ...state,
          filter: action.payload,
-         shouldFetch: true,
+         isFetching: true,
       };
    case CHANGE_SORT_FIELD:
       return {
          ...state,
          sortBy: action.payload,
-         shouldFetch: true,
+         isFetching: true,
       };
    case TOGGLE_SORT_ORDER:
       return {
          ...state,
          isAscending: !state.isAscending,
-         shouldFetch: true,
+         isFetching: true,
       };
    case UPDATE_PRODUCTS:
       return {
          ...state,
          products: action.payload,
-         shouldFetch: false,
+         isFetching: false,
       };
    case CANCEL_UPDATE:
       return {
          ...state,
-         shouldFetch: false,
+         isFetching: false,
       };
    default:
       throw new Error(`${action.type} is not a valid action type`);

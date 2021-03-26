@@ -23,13 +23,13 @@ function ProductSearch() {
 
    const reqParams: ProductsRequestBody = {
       query: {},
-      ascending: state.isAscending,
+      isAscending: state.isAscending,
       sortBy: state.sortBy,
       filter: state.filter,
    };
    
    useSWR<Product[]>(
-      state.shouldFetch ? `/api/products?q=${JSON.stringify(reqParams)}` : null,
+      state.isFetching ? `/api/products?q=${JSON.stringify(reqParams)}` : null,
       fetcher,
       {
          onSuccess: (newProducts) => 
@@ -49,7 +49,7 @@ function ProductSearch() {
    };
 
    const handleSwitchSortOrder = (event: KeyboardEvent<HTMLElement> | MouseEvent<HTMLElement>) => {
-      if (state.shouldFetch) return;
+      if (state.isFetching) return;
       if (
          'key' in event && event.key === 'Enter' || 
          event.type === 'click'
@@ -59,7 +59,7 @@ function ProductSearch() {
    };
 
    const handleChangeSortField = (event: KeyboardEvent<HTMLElement> | MouseEvent<HTMLElement>) => {
-      if (state.shouldFetch) return;
+      if (state.isFetching) return;
       if (
          'key' in event && event.key === 'Enter' || 
          event.type === 'click'
@@ -70,15 +70,29 @@ function ProductSearch() {
       }
    };
 
-   const headerArrow = (field: string) => (
-      state.sortBy === field && ( 
-         state.isAscending ? <>&#x25B2;</> : <>&#x25BC;</> 
-      ) || <>&#x25B6;&#xFE0E;</>
-   );
+   const headerArrow = (field: string) => {
+      if (field !== 'id') {
+         if (state.sortBy === field) {
+            if (state.isAscending) {
+               return <>&#x25B2;</>;
+            }
+            return <>&#x25BC;</>;
+         }
+         return <>&#x25B6;&#xFE0E;</>
+      }
+      return '';
+   };
 
-   const headerHandlerFactory = (field: string) => (
-      field !== state.sortBy ? handleChangeSortField : handleSwitchSortOrder
-   );
+   const headerHandlerFactory = (field: string) => {
+      if (field !== 'id') {
+         if (field !== state.sortBy) {
+            return handleChangeSortField;
+         } else {
+            return handleSwitchSortOrder;
+         }
+      }
+      return null;
+   };
 
    return (
       <PageWrapper>
@@ -97,19 +111,19 @@ function ProductSearch() {
                   id="filter"
                   name="filter"
                   ref={filterField}
-                  disabled={state.shouldFetch}
+                  disabled={state.isFetching}
                   onKeyPress={handleFilterEntry}
                />
                <button
                   type="button"
                   id="filterSubmit"
-                  disabled={state.shouldFetch}
+                  disabled={state.isFetching}
                   onClick={handleFilterEntry}
                >
                   Filter
                </button>
             </FilterWrapper>
-            <TableWrapper data-active={state.shouldFetch} aria-busy={state.shouldFetch}>
+            <TableWrapper data-active={state.isFetching} aria-busy={state.isFetching}>
                <thead>
                   <tr>
                      {fields.map((field) => (
@@ -118,12 +132,12 @@ function ProductSearch() {
                            role="button"
                            key={field[0]}
                            id={field[0]}
-                           onClick={field[0] !== 'id' ? headerHandlerFactory(field[0]) : null}
-                           onKeyPress={field[0] !== 'id' ? headerHandlerFactory(field[0]) : null}
+                           onClick={headerHandlerFactory(field[0])}
+                           onKeyPress={headerHandlerFactory(field[0])}
                         >
                            {field[1]}
                            {` `}
-                           {field[0] !== 'id' && headerArrow(field[0])}
+                           {headerArrow(field[0])}
                         </th>
                      ))}
                   </tr>
@@ -190,6 +204,7 @@ const FilterWrapper = styled.div.attrs({role: "form"})`
    button {
       margin: 0 1em;
       padding: 0.6em 1em;
+      cursor: pointer;
    }
 `;
 
