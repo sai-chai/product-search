@@ -227,6 +227,12 @@ const FilterWrapper = styled.div.attrs({role: "form"})`
       margin: 0 1em;
       padding: 0.6em 1em;
       cursor: pointer;
+      background-color: #e0e0e0;
+      :link,
+      :visited,
+      :hover {
+         background-color: #c0c0c0;
+      }
    }
    input, button {
       border-style: solid;
@@ -248,7 +254,7 @@ const TableWrapper = styled.table`
       }
    }
    thead {
-      background-color: #d0d0d0;
+      background-color: #e0e0e0;
       font-size: 1.1em;
       tr {
          border: solid #111;
@@ -266,6 +272,11 @@ const TableWrapper = styled.table`
    }
    th:not(#id) {
       cursor: pointer;
+      :link,
+      :visited,
+      :hover {
+         background-color: #c0c0c0;
+      }
    }
    td{
       overflow: scroll;
